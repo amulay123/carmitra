@@ -2,8 +2,8 @@
 
 A QR sticker for cars, bikes and scooters. Anyone who needs the owner scans it, picks what's
 happening, and either calls (if the owner shows their number) or chats privately, with neither
-side seeing the other's number. Part of the WeSafe QR family beside PetSafeQR, with
-TommyAndFurry's colours and branding. Users are shared with WeSafe QR (same Firebase project).
+side seeing the other's number. Part of the WeSafe QR family beside PetSafeQR, coloured
+from TommyAndFurry's logo. Users are shared with WeSafe QR (same Firebase project).
 
 - Design: [docs/superpowers/specs/2026-11-20-carmitra-design.md](docs/superpowers/specs/2026-11-20-carmitra-design.md)
 

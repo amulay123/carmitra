@@ -27,7 +27,7 @@ For each vehicle the owner chooses how:
 |---|---|
 | Stack | The same as PetSafeQR: npm workspaces `web`, `api`, `shared`; one Netlify site with the API as a function at `/v1` |
 | Users | Shared with WeSafe and PetSafeQR (Firebase project `wesafe-40d85`) |
-| Look | PetSafeQR's page structure and motion; its own road look; TommyAndFurry's colours and logo |
+| Look | PetSafeQR's page structure and motion; its own road look; TommyAndFurry's colours. Its name and logo are not shown yet |
 | Old ZiddiQR stickers | Left as they are on the lost-and-found site |
 | Chat access for the person scanning | No sign-in, with limits |
 | Vehicles | Car, bike or scooter, other |
@@ -157,8 +157,11 @@ Printing a vehicle's page prints only its sticker, 9 cm square, with no personal
   lane dashes, a zebra crossing and a red and white kerb between blocks; a road the cars drive on.
 - **Vehicles are drawn**, in SVG, not photographed: free car photos carry makers' badges and
   number plates. Their wheels turn as the page scrolls.
-- **TommyAndFurry's logo** appears in the footer, the "what one sticker is for" block, sign-in and
-  settings, as "In partnership with" or "Brought to you with".
+- **TommyAndFurry is not named on the site yet.** Its logo and a "In partnership with" mark are
+  ready in `web/src/components/brand/PartnerMark.tsx`, used nowhere until the branding is agreed.
+- **Footer:** the name and a line on what Carmitra does, three short promises, link columns
+  (Carmitra, your account, the WeSafe family), a lane line, "Back to top", and the logo drawn huge
+  and cut off by the bottom of the page.
 - Copy rules: no invented numbers or quotes; no claim that the number is private except in
   chat-only mode; later features marked "coming later".
 

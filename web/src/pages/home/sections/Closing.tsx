@@ -1,13 +1,13 @@
+import { ArrowUp, ArrowUpRight, Bike, EyeOff, ScanLine } from "lucide-react"
 import { motion, type Variants } from "motion/react"
 import { Link } from "react-router-dom"
 
-import { PartnerMark } from "@/components/brand/PartnerMark"
 import { Wordmark } from "@/components/brand/Wordmark"
 import { buttonVariants } from "@/components/ui/button"
 import { VehicleArt } from "@/components/vehicle/VehicleArt"
 import { petSafeUrl, weSafeUrl } from "@/lib/utils"
 
-import { Container, EASE, Lane, Magnetic, pop, reveal, rise } from "../parts"
+import { Container, EASE, Lane, Magnetic, reveal, rise } from "../parts"
 import { CREATE_PATH, CREATE_QR } from "../sample"
 
 const YEAR = new Date().getFullYear()
@@ -105,11 +105,38 @@ export function Closing() {
   )
 }
 
-const wordmarkMarks = [
-  { place: "left-[14%] top-[42%]", turn: "rotate-[-14deg]" },
-  { place: "left-[37%] top-[58%]", turn: "rotate-[10deg]" },
-  { place: "left-[60%] top-[38%]", turn: "rotate-[-8deg]" },
-  { place: "left-[82%] top-[56%]", turn: "rotate-[16deg]" },
+const footerColumns: { title: string; links: { label: string; to: string; note?: string }[] }[] = [
+  {
+    title: "Carmitra",
+    links: [
+      { label: "What a scanner sees", to: "#scanner" },
+      { label: "How it works", to: "#steps" },
+      { label: "Private chat", to: "#chat" },
+      { label: "Questions", to: "#questions" },
+    ],
+  },
+  {
+    title: "Your account",
+    links: [
+      { label: CREATE_QR, to: CREATE_PATH },
+      { label: "Sign in", to: "/auth" },
+      { label: "Link a sticker", to: "/app/link-sticker" },
+      { label: "Get a printed sticker", to: "/app/get-sticker" },
+    ],
+  },
+  {
+    title: "The WeSafe family",
+    links: [
+      { label: "WeSafe QR", to: weSafeUrl, note: "For people" },
+      { label: "PetSafe QR", to: petSafeUrl, note: "For pets" },
+    ],
+  },
+]
+
+const promises = [
+  { icon: ScanLine, text: "No app needed to scan" },
+  { icon: EyeOff, text: "Number hidden by default" },
+  { icon: Bike, text: "Cars, bikes and scooters" },
 ]
 
 const wordmarkUp: Variants = {
@@ -117,55 +144,89 @@ const wordmarkUp: Variants = {
   shown: { y: 0, opacity: 1, transition: { duration: 1.1, ease: EASE } },
 }
 
-export function Footer() {
-  const link = "inline-flex min-h-11 items-center transition-colors hover:text-coral-700"
+function FooterLink({ label, to, note }: { label: string; to: string; note?: string }) {
+  const className = "group inline-flex min-h-11 flex-col justify-center font-semibold text-navy-900 transition-colors hover:text-coral-700"
+  const text = (
+    <>
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {to.startsWith("http") && <ArrowUpRight className="size-3.5 opacity-50 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />}
+      </span>
+      {note && <span className="text-xs font-normal text-ink-500">{note}</span>}
+    </>
+  )
+  if (to.startsWith("http")) {
+    return (
+      <a href={to} target="_blank" rel="noreferrer" className={className}>
+        {text}
+      </a>
+    )
+  }
+  if (to.startsWith("#")) {
+    return (
+      <a href={to} className={className}>
+        {text}
+      </a>
+    )
+  }
   return (
-    <motion.footer {...reveal(0.15)} className="relative z-10 overflow-hidden bg-surface">
-      <Container className="pt-10 md:pt-14">
-        <div className="flex flex-wrap items-start justify-between gap-x-12 gap-y-6">
-          <div className="flex flex-col items-start gap-5">
-            <div>
-              <Wordmark className="text-[1.7rem]" />
-              <p className="mt-1 max-w-[30ch] text-sm text-ink-600">A QR sticker that lets people reach a vehicle's owner.</p>
-            </div>
-            <PartnerMark />
-          </div>
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 text-sm font-medium text-navy-800">
-            <a href="#scanner" className={link}>
-              What a scanner sees
-            </a>
-            <Link to="/auth" className={link}>
-              Sign in
-            </Link>
-            <a href="#steps" className={link}>
-              How it works
-            </a>
-            <a href={weSafeUrl} target="_blank" rel="noreferrer" className={link}>
-              WeSafe QR
-            </a>
-            <a href="#questions" className={link}>
-              Questions
-            </a>
-            <a href={petSafeUrl} target="_blank" rel="noreferrer" className={link}>
-              PetSafe QR
-            </a>
+    <Link to={to} className={className}>
+      {text}
+    </Link>
+  )
+}
+
+export function Footer() {
+  return (
+    <motion.footer {...reveal(0.1)} className="relative z-10 overflow-hidden bg-surface">
+      <Container className="pt-14 md:pt-20">
+        <div className="grid gap-x-12 gap-y-12 lg:grid-cols-12">
+          <motion.div variants={rise} className="flex flex-col items-start gap-5 lg:col-span-5">
+            <Wordmark className="text-[2rem]" />
+            <p className="max-w-[34ch] text-lg leading-snug text-navy-800">A QR sticker that lets anyone reach a vehicle's owner, without either of them sharing a number.</p>
+            <ul className="flex flex-wrap gap-2">
+              {promises.map(({ icon: Icon, text }) => (
+                <li key={text} className="inline-flex items-center gap-1.5 rounded-full border-2 border-navy-900 bg-white px-3 py-1.5 text-[13px] font-semibold text-navy-900">
+                  <Icon className="size-3.5 text-brand-600" aria-hidden="true" />
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:col-span-7">
+            {footerColumns.map((column, i) => (
+              <motion.div key={column.title} variants={rise} custom={1 + i}>
+                <h2 className="label-caps text-[12px] text-ink-500 [font-stretch:92%]">{column.title}</h2>
+                <ul className="mt-3 flex flex-col">
+                  {column.links.map((link) => (
+                    <li key={link.label}>
+                      <FooterLink {...link} />
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
           </nav>
         </div>
-        <p className="mt-8 border-t-2 border-navy-900 pt-5 text-sm text-ink-600">© {YEAR} Carmitra. Part of WeSafe QR.</p>
+
+        {/* A lane line in place of a rule. */}
+        <div aria-hidden="true" className="lane mt-14 h-[5px] text-navy-900" />
+        <div className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-ink-600">
+          <p>© {YEAR} Carmitra. Part of the WeSafe QR family.</p>
+          <button type="button" onClick={() => window.scrollTo(0, 0)} className="label-caps group inline-flex min-h-11 items-center gap-1.5 text-[13px] text-navy-900 hover:text-coral-700">
+            Back to top
+            <ArrowUp className="size-4 transition-transform group-hover:-translate-y-0.5" aria-hidden="true" />
+          </button>
+        </div>
       </Container>
 
-      {/* The name, oversized and cut off by the bottom of the page, with lane marks across it. */}
-      <div aria-hidden="true" className="relative mt-6 select-none text-center">
-        <motion.p variants={wordmarkUp} className="display -mb-[0.1em] whitespace-nowrap text-[24vw] leading-[0.8] text-navy-900 [font-stretch:62%]">
-          Carmitra
-        </motion.p>
-        <div className="absolute inset-0 text-brand-400">
-          {wordmarkMarks.map((mark, i) => (
-            <motion.span key={mark.place} variants={pop} custom={i * 1.4 + 5} className={`absolute ${mark.place}`}>
-              <span className={`block h-[1.2vw] w-[5vw] rounded-full bg-current ${mark.turn}`} />
-            </motion.span>
-          ))}
-        </div>
+      {/* The logo, oversized and cut off by the bottom of the page: MITRA on its green plate. */}
+      <div aria-hidden="true" className="relative select-none">
+        <motion.div variants={wordmarkUp} className="display -mb-[0.2em] flex items-start justify-center gap-[0.05em] whitespace-nowrap px-[2vw] text-[20.5vw] leading-[0.8] text-navy-900 [font-stretch:62%]">
+          <span className="pt-[0.07em]">Car</span>
+          <span className="rounded-[0.09em] border-[0.035em] border-navy-900 bg-brand-400 px-[0.06em] pt-[0.07em]">mitra</span>
+        </motion.div>
       </div>
     </motion.footer>
   )

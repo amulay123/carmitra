@@ -3,7 +3,6 @@ import { ExternalLink, LogOut } from "lucide-react"
 import { useEffect, useState, type FormEvent } from "react"
 
 import { useAuth } from "@/auth/AuthProvider"
-import { PartnerMark } from "@/components/brand/PartnerMark"
 import { Button } from "@/components/ui/button"
 import { Notice, PageHeading } from "@/components/ui/feedback"
 import { checkOwnerForm, OwnerFields, ownerFormFrom, useOwnerForm } from "@/components/vehicle/OwnerFields"
@@ -97,7 +96,6 @@ export function SettingsPage() {
           <FamilyLink href={weSafeUrl} name="WeSafe QR" text={family?.weSafe ? "You have a WeSafe profile." : "Emergency QR for you and your family."} />
           <FamilyLink href={petSafeUrl} name="PetSafe QR" text={family?.pets ? `${family.pets} ${family.pets === 1 ? "pet" : "pets"} on PetSafe QR.` : "A permanent ID and QR tag for your pet."} />
         </div>
-        <PartnerMark className="mt-2 self-start" />
       </section>
 
       <div className="border-t-2 border-navy-900/15 pt-5">

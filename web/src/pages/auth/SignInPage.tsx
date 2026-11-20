@@ -5,7 +5,6 @@ import { Navigate, useSearchParams } from "react-router-dom"
 import { formatMobile, normalizeMobile } from "@carmitra/shared"
 
 import { RECAPTCHA_ID, useAuth } from "@/auth/AuthProvider"
-import { PartnerMark } from "@/components/brand/PartnerMark"
 import { Wordmark } from "@/components/brand/Wordmark"
 import { Button } from "@/components/ui/button"
 import { Notice, PageSkeleton } from "@/components/ui/feedback"
@@ -121,7 +120,6 @@ export function SignInPage() {
             Continue with Google
           </Button>
           <div id={RECAPTCHA_ID} />
-          <PartnerMark className="self-start" />
         </div>
       </main>
 

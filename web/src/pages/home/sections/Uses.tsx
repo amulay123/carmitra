@@ -2,7 +2,6 @@ import { Ban, Lightbulb, PhoneCall, TriangleAlert, Truck } from "lucide-react"
 import { motion, useScroll, useTransform, type Variants } from "motion/react"
 import { useRef } from "react"
 
-import { PartnerMark } from "@/components/brand/PartnerMark"
 import { buttonVariants } from "@/components/ui/button"
 import { cn, petSafeUrl, weSafeUrl } from "@/lib/utils"
 
@@ -49,8 +48,7 @@ export function Uses() {
             One sticker for every knock on the window.
           </motion.h2>
           <motion.div variants={rise} custom={2} className="md:col-span-4 md:pt-3">
-            <PartnerMark label="Brought to you with" />
-            <h3 className="mt-6 text-2xl font-extrabold">Part of the WeSafe family</h3>
+            <h3 className="text-2xl font-extrabold">Part of the WeSafe family</h3>
             <p className="mt-2 max-w-[38ch] text-[15px] leading-snug">The same sign-in works on WeSafe QR for people and PetSafe QR for pets.</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <a href={petSafeUrl} target="_blank" rel="noreferrer" className={buttonVariants({ variant: "ink", className: "shadow-hard-light" })}>
