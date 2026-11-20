@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// The emulators load this file as it stands. For the live project, copy ONLY the part
+// between the BEGIN and END lines into wesafe-rewamp/firestore.rules, inside
+// `match /databases/{database}/documents`, and deploy from there. Firestore has one rules
+// file per project: deploying this file on its own would replace all of WeSafe's rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== BEGIN CARMITRA =====
+    // Read-only by design: every Carmitra write goes through its server.
+
+    match /carOwners/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      match /vehicles/{cmtId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    match /carVehicles/{cmtId} {
+      // One vehicle at a time, for the scan page. Nobody can list every vehicle.
+      allow get: if true;
+
+      match /private/{docId} {
+        allow read: if request.auth != null && request.auth.uid == resource.data.ownerUid;
+      }
+    }
+
+    match /carTags/{code} {
+      allow get: if true;
+    }
+
+    match /carScans/{scanId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.ownerUid;
+    }
+
+    match /carStickerOrders/{orderId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.ownerUid;
+    }
+
+    match /carChats/{chatId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.ownerUid;
+    }
+
+    // A chat room's id is a long random key. Holding it is what lets you read the room and
+    // its messages. Rooms can't be listed, so there is no other way to find one.
+    match /carChatRooms/{roomKey} {
+      allow get: if true;
+
+      match /carMessages/{messageId} {
+        allow read: if true;
+      }
+    }
+
+    // carChatKeys, carThrottle and carBlocks have no rule on purpose: only the server can
+    // reach them.
+    // ===== END CARMITRA =====
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "carmitra",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "shared",
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n firebase,api,web -c gray,blue,green \"npm run emulators\" \"npm run dev -w api\" \"npm run dev -w web\"",
+    "emulators": "firebase emulators:start --config firebase.emulators.json --project demo-carmitra --only auth,firestore",
+    "seed": "tsx --env-file=api/.env.development scripts/seed-dev.ts",
+    "tags:create": "tsx --env-file=api/.env scripts/create-tags.ts",
+    "netlify:key": "node scripts/netlify-key.mjs",
+    "build": "npm run build -w api && npm run build -w web",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w api && npm run typecheck -w web",
+    "lint": "oxlint",
+    "test": "npm run test:unit && npm run test:emulators",
+    "test:unit": "vitest run --project shared --project web",
+    "test:emulators": "firebase emulators:exec --config firebase.emulators.json --project demo-carmitra --only auth,firestore \"vitest run --project api --project rules\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@netlify/functions": "^6.1.1",
+    "concurrently": "^9.2.1",
+    "firebase": "^12.12.1",
+    "oxlint": "^1.81.0",
+    "tsx": "^4.20.0",
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.2"
+  }
+}

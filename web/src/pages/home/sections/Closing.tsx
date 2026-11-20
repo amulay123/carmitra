@@ -1,0 +1,172 @@
+import { motion, type Variants } from "motion/react"
+import { Link } from "react-router-dom"
+
+import { PartnerMark } from "@/components/brand/PartnerMark"
+import { Wordmark } from "@/components/brand/Wordmark"
+import { buttonVariants } from "@/components/ui/button"
+import { VehicleArt } from "@/components/vehicle/VehicleArt"
+import { petSafeUrl, weSafeUrl } from "@/lib/utils"
+
+import { Container, EASE, Lane, Magnetic, pop, reveal, rise } from "../parts"
+import { CREATE_PATH, CREATE_QR } from "../sample"
+
+const YEAR = new Date().getFullYear()
+
+const faqs = [
+  ["Does the person scanning need an app?", "No. Any phone camera that reads QR codes opens your vehicle's page in the browser."],
+  ["Can people see my mobile number?", "Only if you choose to show it. Every vehicle starts as chat only, where your number never appears. If you switch on Show my number, anyone who scans the sticker can see it and call it."],
+  ["How does the private chat work?", "The person scanning picks a reason and can type a message. You get a WhatsApp alert with a link, and you reply from there. Neither of you sees the other's number."],
+  ["What if someone misuses the chat?", "You can block them. Chats also close on their own after 24 hours, and there is a limit on how many messages one person can send."],
+  ["What if I sell the vehicle?", "Remove it from your account and its QR stops working. The new owner can set up their own."],
+  ["I already use WeSafe QR or PetSafe QR. Do I need a new account?", "No. Sign in with the same Google account or mobile number you use there."],
+]
+
+export function Questions() {
+  return (
+    <motion.section id="questions" {...reveal(0.1)} className="border-t-2 border-navy-900 bg-surface py-16 md:py-28">
+      <Container>
+        <motion.h2 variants={rise} className="display text-[clamp(3.4rem,7.4vw,6.8rem)]">
+          Good questions.
+        </motion.h2>
+        <dl className="mt-10 grid gap-x-14 md:grid-cols-2">
+          {faqs.map(([question, answer], i) => (
+            <motion.div key={question} variants={rise} custom={1 + (i >> 1) * 1.4} className="border-t-2 border-navy-900 py-6">
+              <dt className="font-display text-xl font-extrabold leading-snug [font-stretch:88%] md:text-2xl">{question}</dt>
+              <dd className="mt-2 max-w-[60ch] leading-relaxed text-ink-600">{answer}</dd>
+            </motion.div>
+          ))}
+        </dl>
+      </Container>
+    </motion.section>
+  )
+}
+
+const HEADLINE = ["Give", "your", "car", "a", "voice."]
+
+const wordIn: Variants = {
+  hidden: { y: "70%", opacity: 0, rotate: 5 },
+  shown: (i: number) => ({ y: 0, opacity: 1, rotate: 0, transition: { type: "spring", stiffness: 170, damping: 17, delay: i * 0.09 } }),
+}
+
+/** The vehicles drive in along the road, from the side each one is given. */
+const driveIn: Variants = {
+  hidden: (from: number) => ({ x: `${from * 130}%`, opacity: 0 }),
+  shown: (from: number) => ({ x: 0, opacity: 1, transition: { type: "spring", stiffness: 60, damping: 15, delay: 0.5 + Math.abs(from) * 0.12 } }),
+}
+
+export function Closing() {
+  return (
+    <>
+      <div aria-hidden="true" className="kerb" />
+      <motion.section {...reveal(0.25)} className="relative overflow-hidden bg-navy-900 pt-16 text-center text-white md:pt-24">
+        <Container className="flex flex-col items-center">
+          <h2 aria-label="Give your car a voice." className="display text-[clamp(4.2rem,13.5vw,12.5rem)] text-brand-400">
+            {HEADLINE.map((word, i) => (
+              <motion.span key={word} aria-hidden="true" variants={wordIn} custom={i} className="mr-[0.2em] inline-block last:mr-0">
+                {word}
+              </motion.span>
+            ))}
+          </h2>
+          <motion.p variants={rise} custom={5} className="mt-5 max-w-[36ch] text-lg leading-snug text-white/85">
+            Set it up once. After that, anyone who needs you can reach you.
+          </motion.p>
+          <motion.div variants={rise} custom={6} className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Magnetic>
+              <Link to={CREATE_PATH} className={buttonVariants({ variant: "onDark", size: "lg" })}>
+                {CREATE_QR}
+              </Link>
+            </Magnetic>
+            <Link to="/auth" className={buttonVariants({ variant: "outline", size: "lg" })}>
+              Sign in
+            </Link>
+          </motion.div>
+        </Container>
+
+        {/* Three vehicles on the road that the footer sits under. */}
+        <div className="relative mt-10 h-[11rem] md:mt-14 md:h-[19rem]">
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[42%] bg-navy-800">
+            <span className="absolute inset-x-0 top-0 h-[3px] bg-white/15" />
+            <Lane className="absolute inset-x-0 top-[44%] text-brand-400" />
+          </div>
+          <div className="relative mx-auto h-full max-w-[1240px]">
+            <motion.div variants={driveIn} custom={-1} className="absolute bottom-[30%] left-[-6%] w-[46%] md:left-[2%] md:w-[33%]">
+              <VehicleArt kind="suv" paint="cream" className="w-full" />
+            </motion.div>
+            <motion.div variants={driveIn} custom={1.6} className="absolute bottom-[30%] right-[2%] w-[17%] md:right-[7%] md:w-[12%]">
+              <VehicleArt kind="scooter" paint="sky" className="w-full -scale-x-100" />
+            </motion.div>
+            <motion.div variants={driveIn} custom={1} className="absolute bottom-[30%] left-[38%] w-[44%] md:left-[40%] md:w-[36%]">
+              <VehicleArt kind="car" paint="coral" className="w-full -scale-x-100" />
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+    </>
+  )
+}
+
+const wordmarkMarks = [
+  { place: "left-[14%] top-[42%]", turn: "rotate-[-14deg]" },
+  { place: "left-[37%] top-[58%]", turn: "rotate-[10deg]" },
+  { place: "left-[60%] top-[38%]", turn: "rotate-[-8deg]" },
+  { place: "left-[82%] top-[56%]", turn: "rotate-[16deg]" },
+]
+
+const wordmarkUp: Variants = {
+  hidden: { y: "45%", opacity: 0 },
+  shown: { y: 0, opacity: 1, transition: { duration: 1.1, ease: EASE } },
+}
+
+export function Footer() {
+  const link = "inline-flex min-h-11 items-center transition-colors hover:text-coral-700"
+  return (
+    <motion.footer {...reveal(0.15)} className="relative z-10 overflow-hidden bg-surface">
+      <Container className="pt-10 md:pt-14">
+        <div className="flex flex-wrap items-start justify-between gap-x-12 gap-y-6">
+          <div className="flex flex-col items-start gap-5">
+            <div>
+              <Wordmark className="text-[1.7rem]" />
+              <p className="mt-1 max-w-[30ch] text-sm text-ink-600">A QR sticker that lets people reach a vehicle's owner.</p>
+            </div>
+            <PartnerMark />
+          </div>
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 text-sm font-medium text-navy-800">
+            <a href="#scanner" className={link}>
+              What a scanner sees
+            </a>
+            <Link to="/auth" className={link}>
+              Sign in
+            </Link>
+            <a href="#steps" className={link}>
+              How it works
+            </a>
+            <a href={weSafeUrl} target="_blank" rel="noreferrer" className={link}>
+              WeSafe QR
+            </a>
+            <a href="#questions" className={link}>
+              Questions
+            </a>
+            <a href={petSafeUrl} target="_blank" rel="noreferrer" className={link}>
+              PetSafe QR
+            </a>
+          </nav>
+        </div>
+        <p className="mt-8 border-t-2 border-navy-900 pt-5 text-sm text-ink-600">© {YEAR} Carmitra. Part of WeSafe QR.</p>
+      </Container>
+
+      {/* The name, oversized and cut off by the bottom of the page, with lane marks across it. */}
+      <div aria-hidden="true" className="relative mt-6 select-none text-center">
+        <motion.p variants={wordmarkUp} className="display -mb-[0.1em] whitespace-nowrap text-[24vw] leading-[0.8] text-navy-900 [font-stretch:62%]">
+          Carmitra
+        </motion.p>
+        <div className="absolute inset-0 text-brand-400">
+          {wordmarkMarks.map((mark, i) => (
+            <motion.span key={mark.place} variants={pop} custom={i * 1.4 + 5} className={`absolute ${mark.place}`}>
+              <span className={`block h-[1.2vw] w-[5vw] rounded-full bg-current ${mark.turn}`} />
+            </motion.span>
+          ))}
+        </div>
+      </div>
+    </motion.footer>
+  )
+}

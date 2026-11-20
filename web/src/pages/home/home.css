@@ -1,0 +1,40 @@
+/* Road markings used only by the home page. Its motion lives in parts.tsx. */
+
+/* A zebra crossing: the lower edge of a dark block, painted in the colour of the section below. */
+.zebra {
+  height: 30px;
+  background: repeating-linear-gradient(90deg, var(--color-surface) 0 30px, transparent 30px 60px);
+}
+@media (min-width: 768px) {
+  .zebra {
+    height: 46px;
+    background: repeating-linear-gradient(90deg, var(--color-surface) 0 46px, transparent 46px 92px);
+  }
+}
+
+/* A red and white kerb: where a dark block meets a light one. */
+.kerb {
+  height: 16px;
+  background: repeating-linear-gradient(90deg, var(--color-coral-500) 0 32px, #ffffff 32px 64px);
+  border-block: 2px solid var(--color-navy-900);
+}
+@media (min-width: 768px) {
+  .kerb {
+    height: 22px;
+    background: repeating-linear-gradient(90deg, var(--color-coral-500) 0 48px, #ffffff 48px 96px);
+  }
+}
+
+/* The dashes down the middle of a road, in the current text colour. */
+.lane {
+  height: 6px;
+  background: repeating-linear-gradient(90deg, currentColor 0 46px, transparent 46px 92px);
+}
+
+/* Card rows that scroll sideways on a phone. */
+.snap-row {
+  scrollbar-width: none;
+}
+.snap-row::-webkit-scrollbar {
+  display: none;
+}

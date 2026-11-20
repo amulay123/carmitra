@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.production
+.env.netlify
+.netlify/
+*.log
+.firebase/
+firebase-export-*/
+service-account*.json
+tag-batches/
