@@ -1,6 +1,10 @@
-import { generateCmtId, isCmtId, maskPlate, vehicleLabel, type CarChat, type CarOwner, type VehicleInput, type VehiclePatch, type VehiclePrivate, type VehicleProfile } from "@carmitra/shared"
+import type { DocumentReference, Transaction } from "firebase-admin/firestore"
 
-import { chats, db, nowIso, ownerVehicles, privateRef, rooms, tags, vehicles } from "../firebase"
+import { generateCmtId, isCmtId, maskPlate, scanPath, vehicleLabel, type CarChat, type CarOwner, type VehicleInput, type VehiclePatch, type VehiclePrivate, type VehicleProfile } from "@carmitra/shared"
+
+import { sha256 } from "../auth"
+import { config } from "../config"
+import { chats, db, nowIso, ownerVehicles, partnerRefs, privateRef, rooms, tags, vehicles } from "../firebase"
 import { ApiError, notFound } from "../http"
 import { contactFor } from "./owners"
 
@@ -15,13 +19,53 @@ async function plateInUse(uid: string, plate: string, except?: string): Promise<
 
 const plateTaken = () => new ApiError(409, "plate_exists", "This vehicle is already on your account.")
 
+/** An owner adding a vehicle on Carmitra. */
 export async function createVehicle(owner: CarOwner, input: ParsedVehicle): Promise<{ cmtId: string }> {
   if (await plateInUse(owner.uid, input.plate)) throw plateTaken()
+  const { cmtId } = await issueVehicle(owner, input, { source: "direct" })
+  return { cmtId }
+}
+
+/**
+ * A partner adding a vehicle it has verified the owner of. Sending the same application again
+ * returns the same vehicle, and so does a plate already on the owner's account (such as at
+ * renewal), so a partner never makes a second ID for one vehicle.
+ */
+export async function createPartnerVehicle(owner: CarOwner, input: ParsedVehicle, partner: { id: string; ref?: string }): Promise<{ cmtId: string; created: boolean }> {
+  const ref = partner.ref ? { doc: partnerRefs.doc(sha256(`${partner.id}:${partner.ref}`)), partnerId: partner.id } : undefined
+  const samePlate = (await ownerVehicles(owner.uid).where("plate", "==", input.plate).limit(1).get()).docs[0]?.id
+  return issueVehicle(owner, input, { source: partner.id, partnerRef: partner.ref ?? null, ref, samePlate })
+}
+
+type Issue = {
+  source: string
+  partnerRef?: string | null
+  /** Where a partner's application reference is recorded. */
+  ref?: { doc: DocumentReference; partnerId: string }
+  /** A vehicle with this plate already on the account, which a partner gets back instead. */
+  samePlate?: string
+}
+
+async function issueVehicle(owner: CarOwner, input: ParsedVehicle, issue: Issue): Promise<{ cmtId: string; created: boolean }> {
+  const { ref, samePlate } = issue
+  const recordRef = (tx: Transaction, cmtId: string) => {
+    if (ref) tx.set(ref.doc, { cmtId, ownerUid: owner.uid, partnerId: ref.partnerId, createdAt: nowIso() })
+  }
 
   for (let attempt = 0; attempt < 6; attempt++) {
     const cmtId = generateCmtId()
     try {
-      await db.runTransaction(async (tx) => {
+      return await db.runTransaction(async (tx) => {
+        if (ref) {
+          const earlier = (await tx.get(ref.doc)).data()
+          if (earlier && earlier.ownerUid !== owner.uid) throw new ApiError(409, "ref_conflict", "That partnerRef belongs to a different customer.")
+          // The vehicle may have been removed since; then this application gets a new one.
+          if (earlier && (await tx.get(vehicles.doc(earlier.cmtId))).exists) return { cmtId: earlier.cmtId as string, created: false }
+        }
+        if (samePlate && (await tx.get(vehicles.doc(samePlate))).exists) {
+          recordRef(tx, samePlate)
+          return { cmtId: samePlate, created: false }
+        }
         const profileRef = vehicles.doc(cmtId)
         if ((await tx.get(profileRef)).exists) throw new IdTaken()
 
@@ -43,12 +87,15 @@ export async function createVehicle(owner: CarOwner, input: ParsedVehicle): Prom
           plate: input.plate,
           tagCodes: [],
           numberConsentAt: input.contactMode === "number" ? now : null,
+          source: issue.source,
+          partnerRef: issue.partnerRef ?? null,
         }
         tx.create(profileRef, profile)
         tx.create(privateRef(cmtId), details)
         tx.create(ownerVehicles(owner.uid).doc(cmtId), { cmtId, plate: input.plate, createdAt: now })
+        recordRef(tx, cmtId)
+        return { cmtId, created: true }
       })
-      return { cmtId }
     } catch (err) {
       if (!(err instanceof IdTaken)) throw err
     }
@@ -61,6 +108,21 @@ export async function readVehicle(cmtId: string): Promise<{ profile: VehicleProf
   const [profile, details] = await Promise.all([vehicles.doc(cmtId).get(), privateRef(cmtId).get()])
   if (!profile.exists || !details.exists) return null
   return { profile: profile.data() as VehicleProfile, details: details.data() as VehiclePrivate }
+}
+
+/** What a partner gets back about a vehicle. The partner has verified the owner's mobile. */
+export function partnerVehicleView({ profile, details }: { profile: VehicleProfile; details: VehiclePrivate }) {
+  return {
+    cmtId: profile.cmtId,
+    scanUrl: `${config.publicUrl}${scanPath(profile.cmtId)}`,
+    type: profile.type,
+    plate: details.plate,
+    plateMasked: profile.plateMasked,
+    model: profile.model,
+    colour: profile.colour,
+    contactMode: profile.contactMode,
+    createdAt: profile.createdAt,
+  }
 }
 
 /** Someone else's vehicle looks the same as no vehicle at all. */

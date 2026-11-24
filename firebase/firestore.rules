@@ -53,8 +53,8 @@ service cloud.firestore {
       }
     }
 
-    // carChatKeys, carThrottle and carBlocks have no rule on purpose: only the server can
-    // reach them.
+    // carChatKeys, carThrottle, carBlocks, carPartners and carPartnerRefs have no rule on
+    // purpose: only the server can reach them.
     // ===== END CARMITRA =====
 
     match /{document=**} {

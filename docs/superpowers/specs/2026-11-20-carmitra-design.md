@@ -38,7 +38,7 @@ For each vehicle the owner chooses how:
 ### Not in this version
 
 Calls that hide both numbers (needs a paid calling service), checking who owns the vehicle (RC
-check), payments, emergency contacts, insurance and PUC reminders, a partner API, moving ZiddiQR
+check), payments, emergency contacts, insurance and PUC reminders, moving ZiddiQR
 stickers, and changes to PetSafeQR or WeSafe code.
 
 ## 2. How the three products work together
@@ -76,6 +76,7 @@ All in WeSafe's Firestore. Reads go straight from the browser; every write goes 
 | `carChatRooms/{roomKey}/carMessages/{id}` | Anyone holding the key | `from` (visitor or owner), text, time |
 | `carChatKeys/{roomKey}` | Server only | The chat it belongs to, a hash identifying the visitor, their message count, when the owner was last alerted |
 | `carThrottle`, `carBlocks` | Server only | Scan and chat limits; blocks |
+| `carPartners`, `carPartnerRefs` | Server only | Each partner's key hash; a partner's application reference and the vehicle it made |
 
 Chat records carry `expireAt`, a timestamp 30 days on; a Firestore TTL policy deletes them.
 
@@ -96,6 +97,14 @@ Base path `/v1`. JSON in and out. Errors are `{ error: { code, message } }`.
 
 **Public:** `GET /health`; `POST /scans`; `POST /rooms` (a reason, and optional text; returns the
 room key); `POST /rooms/:roomKey/messages`.
+
+**Partner** (an API key in `X-Api-Key`, added 23 November 2026 for TommyAndFurry):
+`POST /partner/owners`; `POST /partner/vehicles`; `GET /partner/owners/:mobile/vehicles`;
+`GET /partner/vehicles/:cmtId?mobile=`. A partner creates the user from a mobile it verified with
+its own OTP, with no second OTP. Owners and vehicles it creates carry `source` (the partner's
+id) and the vehicle its `partnerRef`. The same `partnerRef`, or a plate already on the account,
+returns the existing vehicle. Its guide is `docs/tommyandfurry-integration.md`; PetSafeQR and
+WeSafe QR have the same API for pets and people.
 
 Removing a vehicle deletes its public and private records, frees its pre-printed stickers for the
 next owner, and closes its open chats. Scans already recorded stay in the owner's inbox.

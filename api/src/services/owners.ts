@@ -2,7 +2,7 @@ import type { DecodedIdToken } from "firebase-admin/auth"
 
 import { CONSENT_VERSION, firstName, normalizeMobile, type CarOwner, type ContactMode, type OwnerPrefill, type VehicleProfile } from "@carmitra/shared"
 
-import { db, nowIso, owners, ownerVehicles, vehicles } from "../firebase"
+import { adminAuth, db, nowIso, owners, ownerVehicles, vehicles } from "../firebase"
 import { ApiError } from "../http"
 
 export async function readOwner(uid: string): Promise<CarOwner | null> {
@@ -79,6 +79,7 @@ export async function saveOwner(user: DecodedIdToken, input: OwnerUpdate): Promi
     name: input.name,
     city: input.city,
     mobileVerified: verified === input.mobile,
+    source: existing?.source ?? "direct",
     consent: existing?.consent ?? { version: CONSENT_VERSION, at: now },
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
@@ -86,6 +87,74 @@ export async function saveOwner(user: DecodedIdToken, input: OwnerUpdate): Promi
   await owners.doc(user.uid).set(owner)
   await pushOwnerToVehicles(owner)
   return owner
+}
+
+export async function uidForMobile(mobile: string): Promise<string | null> {
+  try {
+    return (await adminAuth.getUserByPhoneNumber(mobile)).uid
+  } catch (err) {
+    if ((err as { code?: string }).code === "auth/user-not-found") return null
+    throw err
+  }
+}
+
+/**
+ * The account with this number, or a new one holding only the number. It is the same account
+ * on WeSafe and PetSafeQR, and when the person signs in with a mobile OTP Firebase opens it.
+ */
+export async function findOrCreateUser(mobile: string): Promise<{ uid: string; isNewUser: boolean }> {
+  const uid = await uidForMobile(mobile)
+  if (uid) return { uid, isNewUser: false }
+  try {
+    return { uid: (await adminAuth.createUser({ phoneNumber: mobile })).uid, isNewUser: true }
+  } catch (err) {
+    // Two requests for the same new number at once: the other one won.
+    if ((err as { code?: string }).code === "auth/phone-number-already-exists") {
+      return { uid: (await adminAuth.getUserByPhoneNumber(mobile)).uid, isNewUser: false }
+    }
+    throw err
+  }
+}
+
+type PartnerOwnerInput = {
+  uid: string
+  mobile: string
+  partnerId: string
+  name?: string
+  city?: string
+  consent: { version: string; at: string }
+}
+
+/**
+ * Creates the owner a partner has verified, or fills in what an owner we know left blank. A
+ * partner never overwrites what the owner wrote, nor who brought them first.
+ */
+export async function ensurePartnerOwner(input: PartnerOwnerInput): Promise<{ owner: CarOwner; created: boolean }> {
+  const now = nowIso()
+  const existing = await readOwner(input.uid)
+  const owner: CarOwner = existing
+    ? {
+        ...existing,
+        name: existing.name || input.name || "",
+        city: existing.city || input.city || "",
+        mobile: input.mobile,
+        mobileVerified: true,
+        updatedAt: now,
+      }
+    : {
+        uid: input.uid,
+        mobile: input.mobile,
+        name: input.name ?? "",
+        city: input.city ?? "",
+        mobileVerified: true,
+        source: input.partnerId,
+        consent: { version: input.consent.version, at: input.consent.at, via: input.partnerId },
+        createdAt: now,
+        updatedAt: now,
+      }
+  await owners.doc(input.uid).set(owner)
+  if (existing && (existing.mobile !== owner.mobile || existing.name !== owner.name)) await pushOwnerToVehicles(owner)
+  return { owner, created: !existing }
 }
 
 /** The number WhatsApp alerts go to. */

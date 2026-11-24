@@ -6,7 +6,8 @@ export type IsoDate = string
 /** How people who scan can reach the owner. "chat" never shows the owner's number. */
 export type ContactMode = "chat" | "number"
 
-export type Consent = { version: string; at: IsoDate }
+/** `via` names the partner the consent was given through, such as "tommyandfurry". */
+export type Consent = { version: string; at: IsoDate; via?: string }
 
 /** carOwners/{uid}: readable by the owner only. */
 export type CarOwner = {
@@ -14,8 +15,10 @@ export type CarOwner = {
   mobile: string
   name: string
   city: string
-  /** True when the number came from mobile-OTP sign-in. */
+  /** True when the number came from mobile-OTP sign-in, or from a partner that verified it. */
   mobileVerified: boolean
+  /** Who brought the owner first: "direct", or a partner's id. Missing on owners from before partners. */
+  source?: string
   consent: Consent
   createdAt: IsoDate
   updatedAt: IsoDate
@@ -50,6 +53,10 @@ export type VehiclePrivate = {
   tagCodes: string[]
   /** When the owner agreed to show their number for this vehicle, if they have. */
   numberConsentAt: IsoDate | null
+  /** Who added the vehicle: "direct", or a partner's id. Missing on vehicles from before partners. */
+  source?: string
+  /** The partner's reference for the application that added it. */
+  partnerRef?: string | null
 }
 
 /** carTags/{code}: anyone can look up one code. */

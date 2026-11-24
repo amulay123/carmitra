@@ -6,6 +6,7 @@ side seeing the other's number. Part of the WeSafe QR family beside PetSafeQR, c
 from TommyAndFurry's logo. Users are shared with WeSafe QR (same Firebase project).
 
 - Design: [docs/superpowers/specs/2026-11-20-carmitra-design.md](docs/superpowers/specs/2026-11-20-carmitra-design.md)
+- Partner API for TommyAndFurry: [docs/tommyandfurry-integration.md](docs/tommyandfurry-integration.md)
 
 | Folder | What it is |
 |---|---|
@@ -116,6 +117,20 @@ npm run tags:create -- 500 batch-name
 ```
 
 It writes `tag-batches/batch-name.csv`, a code and a link per sticker, for the printer.
+
+### 6. TommyAndFurry's API key
+
+TommyAndFurry's server creates users and adds vehicles through the partner API at
+`/v1/partner`. Its guide is [docs/tommyandfurry-integration.md](docs/tommyandfurry-integration.md).
+With `api/.env` set up as for printed stickers:
+
+```
+npm run partner:create -- tommyandfurry "TommyAndFurry"
+```
+
+It prints the key once (it starts `csk_`); only its hash is stored, in `carPartners`. Send it to
+TommyAndFurry privately. Add `--rotate` to replace it. No rules change is needed: `carPartners`
+and `carPartnerRefs` have no rule, so only the server can reach them.
 
 ### Netlify's limits
 

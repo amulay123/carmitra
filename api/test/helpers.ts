@@ -2,7 +2,8 @@ import type { Server } from "node:http"
 import type { AddressInfo } from "node:net"
 
 import { createApp } from "../src/app"
-import { adminAuth, db, tags } from "../src/firebase"
+import { newPartnerKey, sha256 } from "../src/auth"
+import { adminAuth, db, partners, tags } from "../src/firebase"
 
 const PROJECT = "demo-carmitra"
 
@@ -35,11 +36,12 @@ export async function resetEmulators() {
   await fetch(`http://${auth}/emulator/v1/projects/${PROJECT}/accounts`, { method: "DELETE", headers: { Authorization: "Bearer owner" } })
 }
 
-type CallOptions = { token?: string; body?: unknown; method?: string; ip?: string }
+type CallOptions = { token?: string; apiKey?: string; body?: unknown; method?: string; ip?: string }
 
-export async function call(path: string, { token, body, method, ip = "203.0.113.1" }: CallOptions = {}) {
+export async function call(path: string, { token, apiKey, body, method, ip = "203.0.113.1" }: CallOptions = {}) {
   const headers: Record<string, string> = { "X-Forwarded-For": ip }
   if (token) headers.Authorization = `Bearer ${token}`
+  if (apiKey) headers["X-Api-Key"] = apiKey
   if (body !== undefined) headers["Content-Type"] = "application/json"
   const res = await fetch(`${base}${path}`, {
     method: method ?? (body !== undefined ? "POST" : "GET"),
@@ -65,6 +67,16 @@ export async function signIn(uid: string, phoneNumber?: string) {
   })
   return ((await res.json()) as { idToken: string }).idToken
 }
+
+/** A partner with a working API key, as scripts/create-partner.ts makes one. */
+export async function createPartner(id = "tommyandfurry", name = "TommyAndFurry") {
+  const key = newPartnerKey(id)
+  await partners.doc(id).set({ name, keyHash: sha256(key), active: true })
+  return key
+}
+
+export const partnerConsent = { version: "tf-2026-11", at: "2026-11-23T10:00:00.000Z" }
+export const partnerCar = { type: "car", plate: "MH 12 AB 1234", model: "Honda City", colour: "white" }
 
 export const addTag = (code: string) => tags.doc(code).set({ code, claimed: false, cmtId: null, batch: "test", createdAt: new Date().toISOString() })
 

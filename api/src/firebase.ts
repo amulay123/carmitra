@@ -31,6 +31,10 @@ export const chatKeys = db.collection("carChatKeys")
 export const stickerOrders = db.collection("carStickerOrders")
 export const throttle = db.collection("carThrottle")
 export const blocks = db.collection("carBlocks")
+/** Server only: partners and the hash of each one's API key. */
+export const partners = db.collection("carPartners")
+/** Server only: a partner's application reference, so a retry finds the same vehicle. */
+export const partnerRefs = db.collection("carPartnerRefs")
 
 export const privateRef = (cmtId: string) => vehicles.doc(cmtId).collection("private").doc("details")
 export const ownerVehicles = (uid: string) => owners.doc(uid).collection("vehicles")
